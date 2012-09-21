@@ -42,7 +42,7 @@ public abstract class DemoBase extends JFrame implements KeyListener,MouseWheelL
 
         textInput = "";
         lastLine ="";
-        size = new Point(800,600);
+        size = new Point(1600,1000);
         setTitle("Superawesome demo");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setVisible(true);
@@ -81,9 +81,9 @@ public abstract class DemoBase extends JFrame implements KeyListener,MouseWheelL
         createBufferStrategy(2);
         // set this JFrame's BufferStrategy to our instance variable
         bufferStrategy = getBufferStrategy();
-        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        GraphicsDevice defaultScreen = ge.getDefaultScreenDevice();
-        defaultScreen.setFullScreenWindow(this);
+//        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+//        GraphicsDevice defaultScreen = ge.getDefaultScreenDevice();
+//        defaultScreen.setFullScreenWindow(this);
 //        GraphicsConfiguration[] configurations = defaultScreen.getConfigurations();
         isRunning = true;
         init();

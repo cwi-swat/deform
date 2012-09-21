@@ -5,10 +5,21 @@ import scala.Math._
 
 case class Color(red: Double, green : Double , blue : Double, alpha : Double){
   def clamp(r : Double) = if (r < 0) 0 else (if(r > 1) 1 else r)
-  def add(rhs : Color) = if(rhs.alpha >= 1.0) rhs else Color(clamp(red + rhs.red),clamp(green + rhs.green),clamp(blue + rhs.blue),clamp(alpha + rhs.alpha))
+  def add(rhs : Color) = 
+      if(alpha + rhs.alpha > 1.0){
+        val nalpha = 1.0 - rhs.alpha
+         Color(clamp(red * nalpha + rhs.red),clamp(green * nalpha + rhs.green),clamp(blue* nalpha  + rhs.blue),1.0)
+      } else 
+         Color(clamp(red + rhs.red),clamp(green + rhs.green),clamp(blue + rhs.blue),clamp(alpha + rhs.alpha))
+   
   def *(op:Double) = {
     clamp(op)
     Color(red*op,green*op,blue*op, alpha*op)
+  }
+  
+  def mulNoAlpha(op : Double) = {
+     clamp(op)
+    Color(red*op,green*op,blue*op, alpha)
   }
   def lerp(ct : Double, rhs : Color) = {
     val t = clamp(ct)
