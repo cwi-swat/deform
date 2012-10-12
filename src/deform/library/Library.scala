@@ -213,6 +213,9 @@ object Library {
       }) : List[QueryPath]
       QueryPathFactory.createAppendsL(asList(all))
     }
+    
+    def circleArcClockwise(startAngle : Double, angleLength : Double) = 
+      path(x => Point(cos(startAngle + x * angleLength),sin(startAngle + x * angleLength)))
   }
   
   object Shapes {
@@ -238,6 +241,11 @@ object Library {
         Join(
         Join(Line(Point(-1,-1),Point(1,-1)),Line(Point(1,-1), Point(1,1))),
         Join(Line(Point(1,1),Point(-1,1)),Line(Point(-1,1), Point(-1,-1))))))
+        
+    def circle = shape(List(Paths.circleArcClockwise(0, 2 * Pi)))
+    def ellipse(width : Double, height : Double) : Shape = Transforms.scale(width/2,height/2) ** circle
+    def ellipse(center : Point, width : Double, height : Double) : Shape =
+      Transforms.translate(center) ** ellipse(width,height)
     
     def shape(lp : List[Path]) = union(lp)
     def union(lp : List[Path]) = OpShape(Union(),lp)
