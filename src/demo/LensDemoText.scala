@@ -63,3 +63,9 @@ class LensDemoText extends BaseScala {
    }
 
 }
+
+object Main{
+  def main(args: Array[String]): Unit = {
+     new LensDemoText()
+   }
+}

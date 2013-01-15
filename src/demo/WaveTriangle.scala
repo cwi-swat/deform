@@ -48,3 +48,10 @@ class WaveTriangle extends BaseScala {
 
 
 }
+
+
+object MainWaveTriangle{
+  def main(args: Array[String]): Unit = {
+     new WaveTriangle()
+   }
+}

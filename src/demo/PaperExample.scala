@@ -75,3 +75,9 @@ class PaperExample extends BaseScala {
   }
 
 }
+
+object PaperExampleMain{
+  def main(args: Array[String]): Unit = {
+     new PaperExample()
+   }
+}

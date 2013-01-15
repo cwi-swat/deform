@@ -24,7 +24,6 @@ class PythagorasTree  extends BaseScala{
   }
   
   def draw(): Unit = { 
-          println(wheel/600 + 0.25)
      val t =  PythagorasFunc.tree(tex,depth,( wheel/600 + 0.25) * Pi)
      
      draw(translate(0,0.6) ** scale(1.0/5)  **  t)
@@ -102,7 +101,8 @@ object PythagorasFunc{
 
 object MainPythagors{
   def main(args: Array[String]): Unit = {
-//     new PythagorasTree()
-         renderImage("/home/ploeg/tree.png",10000,5000,translate(0,0.8) ** scale(1.0/6) **PythagorasFunc.tree(true,21,0.275*Pi))
+     new PythagorasTree()
+//         renderImage("/home/ploeg/tree.png",10000,5000,translate(0,0.8) ** scale(1.0/6) **PythagorasFunc.tree(true,21,0.275*Pi))
    }
 }
+

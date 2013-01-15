@@ -8,7 +8,7 @@ import deform.library.Shapes._
 import deform.library.Textures._
 import deform.library.TexturedShapes._
 import deform.library.Colors._
-import deform.library.Colors.ColorNames
+import deform.library.Colors.ColorNames._
 import deform._
 import deform.library.Drawings._
 
@@ -22,4 +22,10 @@ class TextOnPath extends BaseScala {
   }
 
 
+}
+
+object MainTextOnPath{
+  def main(args: Array[String]): Unit = {
+     new TextOnPath()
+   }
 }

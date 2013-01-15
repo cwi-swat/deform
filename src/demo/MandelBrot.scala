@@ -122,3 +122,11 @@ class MandelBrot extends BaseScala {
 	}
 
 }
+
+
+object MandelBrotMain{
+  def main(args: Array[String]): Unit = {
+     new MandelBrot()
+   }
+}
+
