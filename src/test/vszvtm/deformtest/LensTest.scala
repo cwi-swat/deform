@@ -1,11 +1,11 @@
 package test.vszvtm.deformtest
 
-import deform.Library._
-import deform.Library.Transforms._
-import deform.Library.Shapes._
-import deform.Library.Textures._
-import deform.Library.TexturedShapes._
-import deform.Library.Colors._
+import deform.library.Render._
+import deform.library.Transforms._
+import deform.library.Shapes._
+import deform.library.Textures._
+import deform.library.TexturedShapes._
+import deform.library.Colors._
 import deform._
 
 class LensTest(val zoom : Double) extends MeasureScala{

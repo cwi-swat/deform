@@ -1,10 +1,10 @@
 package deform.library.querypaths;
 
+import deform.Point;
 import deform.library.querypaths.paths.paths.PathIndex;
 import deform.library.querypaths.paths.paths.QueryPath;
 import deform.library.querypaths.paths.results.project.BestProject;
 import deform.library.querypaths.util.Vec;
-import deform.Point;
 
 public class Sweep  {
 

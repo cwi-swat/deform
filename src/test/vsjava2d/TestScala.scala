@@ -1,13 +1,13 @@
 package test.vsjava2d
 import deform.library._
 import deform.Drawing
-import deform.Library._
+import deform.library.Render._
 import deform.AABBox
 import deform.Interval
 import java.awt.Graphics2D
 import deform.Shape
-import deform.Library.Colors._
-import deform.Library.Textures._
+import deform.library.Colors._
+import deform.library.Textures._
 import deform.Color
 import deform.Texture
 

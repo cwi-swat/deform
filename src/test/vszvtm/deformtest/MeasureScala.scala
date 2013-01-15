@@ -2,7 +2,7 @@ package test.vszvtm.deformtest
 
 import deform.TexturedShape
 import deform.Drawing
-import deform.Library
+import deform.library.Render
 import deform.Util._
 import deform.AABBox
 import deform.Interval
@@ -12,6 +12,6 @@ abstract class MeasureScala extends MeasureBase {
   def init() : Unit = ()
   
   def draw(tsl : Drawing) : Unit = 
-    Library.render(AABBox(Interval(0,size.x),Interval(0,size.y)),g,tsl)
+    Render.render(AABBox(Interval(0,size.x),Interval(0,size.y)),g,tsl)
 
 }

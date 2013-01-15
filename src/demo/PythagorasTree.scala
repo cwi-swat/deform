@@ -1,12 +1,14 @@
 package demo
 import scala.math._
-import deform.Library._
-import deform.Library.Transforms._
-import deform.Library.Paths._
-import deform.Library.Shapes._
-import deform.Library.Textures._
-import deform.Library.TexturedShapes._
-import deform.Library.Colors._
+import deform.library.Render._
+import deform.library.Transforms._
+import deform.library.Paths._
+import deform.library.Shapes._
+import deform.library.Textures._
+import deform.library.TexturedShapes._
+import deform.library.Colors._
+import deform.library.Colors.ColorNames._
+import deform.library.Drawings._
 import deform._
 import deform.AffineTransformation
 
@@ -24,7 +26,7 @@ class PythagorasTree  extends BaseScala{
   def draw(): Unit = { 
           println(wheel/600 + 0.25)
      val t =  PythagorasFunc.tree(tex,depth,( wheel/600 + 0.25) * Pi)
-//     renderImage("/home/atze/tree.png",1800,1200,t)
+     
      draw(translate(0,0.6) ** scale(1.0/5)  **  t)
   }
     def main(args: Array[String]): Unit = {
@@ -101,6 +103,6 @@ object PythagorasFunc{
 object MainPythagors{
   def main(args: Array[String]): Unit = {
 //     new PythagorasTree()
-         Library.renderImage("/home/ploeg/tree.png",10000,5000,translate(0,0.8) ** scale(1.0/6) **PythagorasFunc.tree(true,21,0.275*Pi))
+         renderImage("/home/ploeg/tree.png",10000,5000,translate(0,0.8) ** scale(1.0/6) **PythagorasFunc.tree(true,21,0.275*Pi))
    }
 }

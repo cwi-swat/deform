@@ -3,18 +3,18 @@ package deform
 import java.awt.Graphics2D
 import java.awt.Paint
 import DeformFunctions._
-import Library._
+import deform.library._
 import java.awt.geom.AffineTransform
-import scala.Math._
+import scala.math._
 import java.awt.geom.Rectangle2D
 
-protected[deform] abstract class RenderContext[GraphicsState]{
+private[deform] abstract class RenderContext[GraphicsState]{
   def render(area : AABBox, state : GraphicsState, ts : Drawing)
 }
 
 
 
-protected[deform] abstract class Java2DBuffer(val t : AffineTransform ,val area : AABBox, val bufType : Int){
+private[deform] abstract class Java2DBuffer(val t : AffineTransform ,val area : AABBox, val bufType : Int){
   val img = new java.awt.image.BufferedImage(area.widthInt,
 				area.heightInt, bufType);
   val g = img.getGraphics() match {
@@ -35,7 +35,7 @@ protected[deform] abstract class Java2DBuffer(val t : AffineTransform ,val area 
  }
 }
 
-protected[deform] class FillJava2DBuffer(override val t : AffineTransform,area : AABBox) extends Java2DBuffer(t,area,java.awt.image.BufferedImage.TYPE_BYTE_GRAY){
+private[deform] class FillJava2DBuffer(override val t : AffineTransform,area : AABBox) extends Java2DBuffer(t,area,java.awt.image.BufferedImage.TYPE_BYTE_GRAY){
   def getPixel(index : Int) = imgBuf.getElem(index)/255.0
   def draw(aabb : AABBox, s : java.awt.geom.Path2D.Double){
     g.setColor(java.awt.Color.black);
@@ -45,7 +45,7 @@ protected[deform] class FillJava2DBuffer(override val t : AffineTransform,area :
   }
 }
 
-protected[deform] class ColorJava2DBuffer(override val t : AffineTransform,area : AABBox) extends Java2DBuffer(t,area,java.awt.image.BufferedImage.TYPE_4BYTE_ABGR_PRE){
+private[deform] class ColorJava2DBuffer(override val t : AffineTransform,area : AABBox) extends Java2DBuffer(t,area,java.awt.image.BufferedImage.TYPE_4BYTE_ABGR_PRE){
     val lineIndexes = area.widthInt * 4
     def setPixel(elem : Int, c : Color) = {
       val r = elem + 3;
@@ -70,7 +70,7 @@ protected[deform] class ColorJava2DBuffer(override val t : AffineTransform,area 
     }
 }
 
-protected[deform] object RenderJava2D extends RenderContext[java.awt.Graphics] {
+private[deform] object RenderJava2D extends RenderContext[java.awt.Graphics] {
 	def getJava2DPath(g : List[ConcreteSegment]) = {
 	  val res = new java.awt.geom.Path2D.Double()
 	  res.moveTo(g.head.start.x, g.head.start.y)

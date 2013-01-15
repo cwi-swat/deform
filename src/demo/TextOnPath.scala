@@ -1,14 +1,15 @@
 package demo
 
 import scala.math._
-import deform.Library._
-import deform.Library.Transforms._
-import deform.Library.Paths._
-import deform.Library.Shapes._
-import deform.Library.Textures._
-import deform.Library.TexturedShapes._
-import deform.Library.Colors._
+import deform.library.Render._
+import deform.library.Transforms._
+import deform.library.Paths._
+import deform.library.Shapes._
+import deform.library.Textures._
+import deform.library.TexturedShapes._
+import deform.library.Colors._
 import deform._
+import deform.library.Drawings._
 
 class TextOnPath extends BaseScala {
 

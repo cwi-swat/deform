@@ -1,9 +1,10 @@
 package deform
-import scala.Math._
+import scala.math._
 import java.io.File
 import java.awt.geom.AffineTransform
+import deform.library._
 
-protected[deform] case class Matrix(x1 : Double, x2 : Double, x3 : Double, y1 : Double, y2 : Double, y3 : Double) {
+private[deform] case class Matrix(x1 : Double, x2 : Double, x3 : Double, y1 : Double, y2 : Double, y3 : Double) {
  def rmul(r:Matrix) = Matrix(r.x1 * x1 + r.y1 * x2, r.x2 * x1 + r.y2 * x2, r.x3* x1 + r.y3 * x2 + x3,
 		 				r.x1 * y1 + r.y1 * y2, r.x2 * y1 + r.y2 * y2, r.x3 * y1 + r.y3 * y2+ y3)
  def *(r : Matrix) = r.rmul(this)
@@ -13,28 +14,35 @@ protected[deform] case class Matrix(x1 : Double, x2 : Double, x3 : Double, y1 : 
 }
 
 abstract class Path{
-  protected[deform] def toFPath : FPath
+  private[deform] def toFPath : FPath
   def bbox : Option[AABBox]
   def |(op : Transformation) = TransformPath(op,this)
 }
 
-protected[deform] case class FPath(fun : Double => Point, bbox : Option[AABBox]) extends Path {
+private[deform] case class FPath(fun : Double => Point, bbox : Option[AABBox]) extends Path {
   def toFPath = this
 }
 
+/**
+ * A path that is a Bezier curve. I.e. a path that can be analyzed.
+ */
 abstract class ConcreteSegment extends Path{
   def start : Point
-  protected[deform] def map(f : Point => Point) : ConcreteSegment
+  private[deform] def map(f : Point => Point) : ConcreteSegment
 }
 
 case class Line(start : Point, end : Point) extends ConcreteSegment{
-    protected[deform] def toFPath = FPath(t => start.lerp(t,end),bbox)
-    protected[deform] def map(f : Point => Point) = Line(f(start),f(end))
+    private[deform] def toFPath = FPath(t => start.lerp(t,end),bbox)
+    private[deform] def map(f : Point => Point) = Line(f(start),f(end))
     def bbox = Some(Util.makeBBox(start,end))
 }
 
+/**
+ * Quadratic Bezier curve.
+ */
+
 case class Quad(start : Point, control : Point, end : Point) extends ConcreteSegment{
-    protected[deform] def toFPath = FPath(t => {
+    private[deform] def toFPath = FPath(t => {
       val ot = 1.0 -t;
 	  val t2 = t * t;
 	  val ot2 = ot * ot;
@@ -44,6 +52,10 @@ case class Quad(start : Point, control : Point, end : Point) extends ConcreteSeg
     def map(f : Point => Point) = Quad(f(start),f(control),f(end))
     def bbox =  Some(Util.makeBBox(start,control,end))
 }
+
+/**
+ * Cubic Bezier curve.
+ */
 case class Cubic(start : Point, controll : Point, controlr : Point, end : Point) extends ConcreteSegment{
    def toFPath = FPath(t => {
       val rt = 1.0 - t;
@@ -59,7 +71,7 @@ case class Cubic(start : Point, controll : Point, controlr : Point, end : Point)
     def map(f : Point => Point) = Cubic(f(start),f(controll),f(controlr),f(end))
     def bbox =  Some(Util.makeBBox(start,controll,controlr,end))
 }
-protected[deform] case class Join(l : Path, r : Path) extends Path {
+private[deform] case class Join(l : Path, r : Path) extends Path {
    def toFPath = {
      val fl = l.toFPath
      val fr = r.toFPath
@@ -71,7 +83,7 @@ protected[deform] case class Join(l : Path, r : Path) extends Path {
    }
 }
 
-protected[deform] case class TransformPath(t : Transformation, p : Path) extends Path{
+private[deform] case class TransformPath(t : Transformation, p : Path) extends Path{
    def toFPath = throw new Error("not normalized!")
    def bbox = (p.bbox,t.transformBBox) match {
      case (Some(b),Some(tb)) => Some(tb(b))
@@ -79,24 +91,24 @@ protected[deform] case class TransformPath(t : Transformation, p : Path) extends
    }
 }
 
-protected[deform] case class AnalyzePathPath(p : Path, analysis :  (Double,List[ConcreteSegment]) => Path, bbox : Option[AABBox]) extends Path {
+private[deform] case class AnalyzePathPath(p : Path, analysis :  (Double,List[ConcreteSegment]) => Path, bbox : Option[AABBox]) extends Path {
    def toFPath = throw new Error("not normalized!")
 }
 
-protected[deform] case class AnalyzeShapePath(s : Shape, analysis :  (Double,ShapeSetOperation,List[List[ConcreteSegment]]) => Path, bbox : Option[AABBox]) extends Path {
+private[deform] case class AnalyzeShapePath(s : Shape, analysis :  (Double,ShapeSetOperation,List[List[ConcreteSegment]]) => Path, bbox : Option[AABBox]) extends Path {
    def toFPath = throw new Error("not normalized!")
 }
 
-protected[deform] abstract class ShapeSetOperation
-protected[deform] case class Union extends ShapeSetOperation
-protected[deform] case class Symdiff extends ShapeSetOperation
+private[deform] abstract class ShapeSetOperation
+private[deform] case class Union extends ShapeSetOperation
+private[deform] case class Symdiff extends ShapeSetOperation
 
  abstract class Shape {
-  protected[deform] def toOpShape : OpShape
+  private[deform] def toOpShape : OpShape
   def |(op : Transformation) = TransformShape(op,this)
   def bbox : Option[AABBox]
 }
-protected[deform] case class OpShape(op : ShapeSetOperation, cpaths : List[Path]) extends Shape{
+private[deform] case class OpShape(op : ShapeSetOperation, cpaths : List[Path]) extends Shape{
   def toOpShape = this
   def bbox = {
     var list = cpaths.tail
@@ -112,15 +124,15 @@ protected[deform] case class OpShape(op : ShapeSetOperation, cpaths : List[Path]
   }
 }
 
-protected[deform] case class AnalyzePathShape(p : Path, analysis :  (Double,List[ConcreteSegment]) => Shape, bbox : Option[AABBox]) extends Shape {
+private[deform] case class AnalyzePathShape(p : Path, analysis :  (Double,List[ConcreteSegment]) => Shape, bbox : Option[AABBox]) extends Shape {
    def toOpShape = throw new Error("not normalized!")
 }
 
-protected[deform] case class AnalyzeShapeShape(s : Shape, analysis :  (Double,ShapeSetOperation,List[List[ConcreteSegment]]) => Shape, bbox : Option[AABBox]) extends Shape {
+private[deform] case class AnalyzeShapeShape(s : Shape, analysis :  (Double,ShapeSetOperation,List[List[ConcreteSegment]]) => Shape, bbox : Option[AABBox]) extends Shape {
    def toOpShape = throw new Error("not normalized!")
 }
 
-protected[deform] case class TransformShape(t : Transformation, s : Shape) extends Shape {
+private[deform] case class TransformShape(t : Transformation, s : Shape) extends Shape {
   def toOpShape = throw new Error("Not normalized!")
   def bbox =
     (t.transformBBox,s.bbox) match {
@@ -129,9 +141,9 @@ protected[deform] case class TransformShape(t : Transformation, s : Shape) exten
   }
 }
 
-protected[deform] case class InverseAffTransformedShape(t : AffineTransformation, s : Shape) extends Shape{
+private[deform] case class InverseAffTransformedShape(t : AffineTransformation, s : Shape) extends Shape{
     def toOpShape = throw new Error("Not normalized!")
-    def bbox = (Library.Transforms.inverse(t).transformBBox,s.bbox) match {
+    def bbox = (Transforms.inverse(t).transformBBox,s.bbox) match {
     case (Some(tb),Some(b)) => Some(tb(b))
     case _ => None
   }
@@ -139,33 +151,33 @@ protected[deform] case class InverseAffTransformedShape(t : AffineTransformation
 
 abstract class Texture{
   def |(op : Transformation) = TransformTexture(op,this)
-  protected[deform] def toFTexture : FTexture
+  private[deform] def toFTexture : FTexture
 }
-protected[deform] case class FTexture(fun : Point => Color, par : Option[Int] ) extends Texture {
+private[deform] case class FTexture(fun : Point => Color, par : Option[Int] ) extends Texture {
     def toFTexture = this
 }
-protected[deform] case class TransformTexture(t : Transformation, tex : Texture) extends Texture{
+private[deform] case class TransformTexture(t : Transformation, tex : Texture) extends Texture{
    def toFTexture = throw new Error("not normalized!")
 }
 
-protected[deform] case class AnalyzePathTexture(p : Path, analysis :  (Double,List[ConcreteSegment]) => Texture) extends Texture {
+private[deform] case class AnalyzePathTexture(p : Path, analysis :  (Double,List[ConcreteSegment]) => Texture) extends Texture {
    def toFTexture = throw new Error("not normalized!")
 }
 
-protected[deform] case class AnalyzeShapeTexture(s : Shape, analysis :  (Double,ShapeSetOperation,List[List[ConcreteSegment]]) => Texture, bbox : Option[AABBox]) extends Texture {
+private[deform] case class AnalyzeShapeTexture(s : Shape, analysis :  (Double,ShapeSetOperation,List[List[ConcreteSegment]]) => Texture, bbox : Option[AABBox]) extends Texture {
    def toFTexture = throw new Error("not normalized!")
 }
 
-protected[deform] abstract case class NativeTexture extends Texture 
-protected[deform] case class AffTransformedNativeTexture(t : AffineTransformation, ntex : NativeTexture) extends NativeTexture{
+private[deform] abstract class NativeTexture extends Texture 
+private[deform] case class AffTransformedNativeTexture(t : AffineTransformation, ntex : NativeTexture) extends NativeTexture{
      def toFTexture = throw new Error("should not normalize!")
 }
 
-protected[deform] case class FillColor(color : Color) extends NativeTexture {
+private[deform] case class FillColor(color : Color) extends NativeTexture {
        def toFTexture = throw new Error("should not normalize!")
 }
 
-protected[deform] abstract class LinearGradient(fracColors : List[Tuple2[Double,Color]]) extends NativeTexture{
+private[deform] abstract class LinearGradient(fracColors : List[Tuple2[Double,Color]]) extends NativeTexture{
   def getColor(frac : Double) = 
     if(frac == 1.0) fracColors.last._2
     else {
@@ -178,8 +190,9 @@ protected[deform] abstract class LinearGradient(fracColors : List[Tuple2[Double,
     
 }
 
- abstract class CycleMethod {
-  protected[deform] def getFrac(f : Double) : Double
+/** The cycle method for gradients */
+abstract class CycleMethod {
+  private[deform] def getFrac(f : Double) : Double
 }
 case class NoCycle extends CycleMethod{
     def getFrac(f : Double)  = if(f > 1.0) 1.0 else( if(f < 0.0) 0.0 else f)
@@ -189,10 +202,11 @@ case class Reflect extends CycleMethod{
   def getFrac(f : Double)  =  if (f.toInt % 2 == 0) f - f.toInt else 1 - (f - f.toInt)
       
 }
+
 case class Repeat extends CycleMethod{
   def getFrac(f: Double) = f - f.toInt
 }
-protected[deform] case class LineLinearGradient(line : Line, val fracColors : List[Tuple2[Double,Color]], cycle: CycleMethod) extends LinearGradient(fracColors){
+private[deform] case class LineLinearGradient(line : Line, val fracColors : List[Tuple2[Double,Color]], cycle: CycleMethod) extends LinearGradient(fracColors){
     def toFTexture = {
       val dir = line.end - line.start
       val length = dir.norm
@@ -202,7 +216,7 @@ protected[deform] case class LineLinearGradient(line : Line, val fracColors : Li
     }
 }
 
-protected[deform] case class LinearRadialGradient(center : Point, focusc : Point, radius : Double, fracColors : List[Tuple2[Double,Color]], cycle: CycleMethod)  extends LinearGradient(fracColors){
+private[deform] case class LinearRadialGradient(center : Point, focusc : Point, radius : Double, fracColors : List[Tuple2[Double,Color]], cycle: CycleMethod)  extends LinearGradient(fracColors){
    def toFTexture = {
       val focus = focusc - center
       val c = focus.normSquared - radius*radius
@@ -217,7 +231,7 @@ protected[deform] case class LinearRadialGradient(center : Point, focusc : Point
     }
 }
 
-protected[deform] case class ImageTexture(img : java.awt.image.BufferedImage, anchor : Point) extends NativeTexture{
+private[deform] case class ImageTexture(img : java.awt.image.BufferedImage, anchor : Point) extends NativeTexture{
   val imgBuf = img.getRaster().getDataBuffer();
   val width = img.getWidth()
   val height = img.getHeight()
@@ -236,12 +250,15 @@ protected[deform] case class ImageTexture(img : java.awt.image.BufferedImage, an
     }, None)
 }
 
+/**
+ * A shape with a texture.
+ */
 abstract class TexturedShape() {
   def |(op : Transformation) = TransformTexturedShape(op,this)
   def bbox : Option[AABBox]
 }
 
-protected[deform] case class TransformTexturedShape(t : Transformation, i : TexturedShape) extends TexturedShape {
+private[deform] case class TransformTexturedShape(t : Transformation, i : TexturedShape) extends TexturedShape {
    def bbox =
     (t.transformBBox,i.bbox) match {
     case (Some(tb),Some(b)) => Some(tb(b))
@@ -249,29 +266,29 @@ protected[deform] case class TransformTexturedShape(t : Transformation, i : Text
   }
 }
 
-protected[deform] case class AnalyzePathTexturedShape(p : Path, analysis :  (Double,List[ConcreteSegment]) => TexturedShape, bbox : Option[AABBox]) extends TexturedShape
+private[deform] case class AnalyzePathTexturedShape(p : Path, analysis :  (Double,List[ConcreteSegment]) => TexturedShape, bbox : Option[AABBox]) extends TexturedShape
 
-protected[deform] case class AnalyzeShapeTexturedShape(s : Shape, analysis :  (Double,ShapeSetOperation,List[List[ConcreteSegment]]) => TexturedShape, bbox : Option[AABBox]) extends TexturedShape 
+private[deform] case class AnalyzeShapeTexturedShape(s : Shape, analysis :  (Double,ShapeSetOperation,List[List[ConcreteSegment]]) => TexturedShape, bbox : Option[AABBox]) extends TexturedShape 
 
-protected[deform] case class CTexturedShape(shape : Shape, tex : Texture) extends TexturedShape {
+private[deform] case class CTexturedShape(shape : Shape, tex : Texture) extends TexturedShape {
   def bbox = shape.bbox
 }
 
-protected[deform] case class AffTransformedNativeTexShape(t : AffineTransformation, ts : TexturedShape) extends TexturedShape{
+private[deform] case class AffTransformedNativeTexShape(t : AffineTransformation, ts : TexturedShape) extends TexturedShape{
     def bbox = (ts.bbox,t.transformBBox) match {
       case (Some(b),Some(t)) => Some(t(b))
       case _ => None
     }
 }
 
-protected[deform] case class PartiallyTransformedTexturedShape(area : AABBox, t : Transformation, ts : TexturedShape) extends TexturedShape{
+private[deform] case class PartiallyTransformedTexturedShape(area : AABBox, t : Transformation, ts : TexturedShape) extends TexturedShape{
    def bbox = (ts.bbox,t.transformBBox) match {
       case (Some(b),Some(t)) => Some(t(b))
       case _ => None
     }
 }
 
-protected[deform] case class ImageTexturedShape(img : java.awt.image.BufferedImage) extends TexturedShape {
+private[deform] case class ImageTexturedShape(img : java.awt.image.BufferedImage) extends TexturedShape {
   
   val imgBuf = img.getRaster().getDataBuffer();
   val width = img.getWidth()
@@ -310,15 +327,18 @@ protected[deform] case class ImageTexturedShape(img : java.awt.image.BufferedIma
    def bbox = shape.bbox
 }
 
-abstract case class Drawing
+/** A set of textured shapes.
+ * 
+ */
+abstract class Drawing
 
 
-protected[deform] case class SingleDrawing(ts : TexturedShape) extends Drawing
-protected[deform] case class ListDrawing(ts : List[Drawing]) extends Drawing
-protected[deform] case class TransformDrawing(t : Transformation, actual : Drawing) extends Drawing
+private[deform] case class SingleDrawing(ts : TexturedShape) extends Drawing
+private[deform] case class ListDrawing(ts : List[Drawing]) extends Drawing
+private[deform] case class TransformDrawing(t : Transformation, actual : Drawing) extends Drawing
 
 abstract class Transformation{
-  protected[deform] def toFTransformation (d : Double): FTransformation
+  private[deform] def toFTransformation (d : Double): FTransformation
   
   def |(op : Transformation) = ComposeTransformation(op,this)
   def **(op : Transformation) = ComposeTransformation(this,op)
@@ -327,24 +347,30 @@ abstract class Transformation{
   def **(op : Texture) = TransformTexture(this,op)
   def **(op : TexturedShape) = TransformTexturedShape(this,op)
   def **(op : Drawing) =TransformDrawing(this,op)
+  /** (optional) A function that transforms a bounding box as it will be (approximalty) transformed by
+   * this transformation.
+   */
   def transformBBox : Option[AABBox => AABBox]
+  /** (optional) The area that is transformed by this transformation,
+   * for local transformations.
+   */
   def affectedArea : Option[Tuple2[AABBox,Transformation]]
-
-}
-protected[deform] case class FTransformation(forward : Point => Point, backwards : Point => Point, transformBBox : Option[AABBox => AABBox], affectedArea : Option[Tuple2[AABBox,Transformation]]) extends Transformation{
-  protected[deform]override def toFTransformation(d:Double)= this
 }
 
+private[deform] case class FTransformation(forward : Point => Point, backwards : Point => Point, transformBBox : Option[AABBox => AABBox], affectedArea : Option[Tuple2[AABBox,Transformation]]) extends Transformation{
+  private[deform]override def toFTransformation(d:Double)= this
+}
 
-protected[deform] case class GetScaleTransformation(t : Double => (Point => Point,Point => Point ), transformBBox : Option[AABBox => AABBox], affectedArea : Option[Tuple2[AABBox,Transformation]]) extends Transformation{
-    protected[deform]override def toFTransformation(d:Double) = {
+
+private[deform] case class GetScaleTransformation(t : Double => (Point => Point,Point => Point ), transformBBox : Option[AABBox => AABBox], affectedArea : Option[Tuple2[AABBox,Transformation]]) extends Transformation{
+    private[deform]override def toFTransformation(d:Double) = {
       val tr = t(d)
       FTransformation(tr._1, tr._2, transformBBox,affectedArea)
     }
 }
 
-protected[deform] case class ComposeTransformation(a : Transformation, b : Transformation) extends Transformation{
-    protected[deform] override def toFTransformation(d:Double) = throw new Error("Not normalized!")
+private[deform] case class ComposeTransformation(a : Transformation, b : Transformation) extends Transformation{
+    private[deform] override def toFTransformation(d:Double) = throw new Error("Not normalized!")
     def transformBBox = (a.transformBBox,b.transformBBox) match {
       case (Some(a),Some(b)) => Some((bb : AABBox) => a(b(bb)))
       case _ => None
@@ -355,33 +381,33 @@ protected[deform] case class ComposeTransformation(a : Transformation, b : Trans
     }
 } 
 
-protected[deform] case class AnalyzePathTransformation(p : Path, analysis : (Double,List[ConcreteSegment]) => Transformation, transformBBox : Option[AABBox=>AABBox], affectedArea : Option[Tuple2[AABBox,Transformation]]) extends Transformation{
-    protected[deform] override def toFTransformation(d:Double) = throw new Error("Not normalized!")
+private[deform] case class AnalyzePathTransformation(p : Path, analysis : (Double,List[ConcreteSegment]) => Transformation, transformBBox : Option[AABBox=>AABBox], affectedArea : Option[Tuple2[AABBox,Transformation]]) extends Transformation{
+    private[deform] override def toFTransformation(d:Double) = throw new Error("Not normalized!")
 }
 
-protected[deform] case class AnalyzeShapeTransformation(s : Shape, analysis :  (Double,ShapeSetOperation,List[List[ConcreteSegment]]) => Transformation, transformBBox : Option[AABBox=>AABBox],affectedArea : Option[Tuple2[AABBox,Transformation]]) extends Transformation {
-      protected[deform] override def toFTransformation(d:Double) = throw new Error("Not normalized!")
+private[deform] case class AnalyzeShapeTransformation(s : Shape, analysis :  (Double,ShapeSetOperation,List[List[ConcreteSegment]]) => Transformation, transformBBox : Option[AABBox=>AABBox],affectedArea : Option[Tuple2[AABBox,Transformation]]) extends Transformation {
+      private[deform] override def toFTransformation(d:Double) = throw new Error("Not normalized!")
 }
 
-protected[deform] case class AffineTransformation(forward : Matrix, backwards : Matrix) extends Transformation{
-  protected[deform] override def toFTransformation(d:Double) = FTransformation(p => forward * p, p => backwards * p,transformBBox, None)
+private[deform] case class AffineTransformation(forward : Matrix, backwards : Matrix) extends Transformation{
+  private[deform] override def toFTransformation(d:Double) = FTransformation(p => forward * p, p => backwards * p,transformBBox, None)
   def transformBBox = Some(b => Util.makeBBox(forward * b.leftUp, forward * b.rightUp, forward * b.rightDown, forward * b.leftDown ) )
       def affectedArea = None
 }
 
-protected[deform] case class InverseTransformation(t : Transformation, transformBBox : Option[AABBox=>AABBox],affectedArea : Option[Tuple2[AABBox,Transformation]]) extends Transformation{
-        protected[deform] override def toFTransformation(d:Double) = throw new Error("Not normalized!")
+private[deform] case class InverseTransformation(t : Transformation, transformBBox : Option[AABBox=>AABBox],affectedArea : Option[Tuple2[AABBox,Transformation]]) extends Transformation{
+        private[deform] override def toFTransformation(d:Double) = throw new Error("Not normalized!")
 }
 
-protected[deform] case class IdentityTransformation extends Transformation{
-    protected[deform] override def toFTransformation(d:Double) = throw new Error("Not normalized!")
+private[deform] case class IdentityTransformation extends Transformation{
+    private[deform] override def toFTransformation(d:Double) = throw new Error("Not normalized!")
       def transformBBox = Some(b => b)
     def affectedArea = None
 }
 
 
 
-protected[deform] object DeformFunctions{
+private[deform] object DeformFunctions{
   
   val numericError = 1.2
   val numericErrorSquared = numericError*numericError

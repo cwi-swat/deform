@@ -1,8 +1,10 @@
 package deform 
 
-import scala.Math._
+import scala.math._
 
-
+/**
+ * Values should be in the range [0,1]
+ */
 case class Color(red: Double, green : Double , blue : Double, alpha : Double){
   def clamp(r : Double) = if (r < 0) 0 else (if(r > 1) 1 else r)
   def add(rhs : Color) = 
@@ -33,16 +35,6 @@ case class Color(red: Double, green : Double , blue : Double, alpha : Double){
   }
 }
 
-case class Interval(low : Double, high : Double){
-  def length = high - low
-  def union(rhs : Interval) = new Interval(min(low,rhs.low),max(high,rhs.high))
-  def intersect(rhs : Interval) = new Interval(max(low,rhs.low),min(high,rhs.high))
-  def empty() = low > high
-  def inside(x : Double) = x >= low && x <= high 
-  def overlaps(rhs : Interval) = !(rhs.high < low || rhs.low > high)
-  def middle = (low + high)/2
-  def grow(d : Double) = Interval(low-d,high+d)
-}
 
 case class Point(x : Double, y : Double){
   def ==(op : Point) = x == op.x && y == op.y
@@ -59,11 +51,27 @@ case class Point(x : Double, y : Double){
     val li = 1 - i
     Point(li * x + i * rhs.x, li * y + i * rhs.y)
   }
-
   def distanceSquared(rhs : Point) = (rhs - this).normSquared
   def distance(rhs : Point) = (rhs - this).norm
 }
 
+/** Represents the interval [low,high] (inclusive,inclusive).
+ * 
+ */
+case class Interval(low : Double, high : Double){
+  def length = high - low
+  def union(rhs : Interval) = new Interval(min(low,rhs.low),max(high,rhs.high))
+  def intersect(rhs : Interval) = new Interval(max(low,rhs.low),min(high,rhs.high))
+  def empty() = low > high
+  def inside(x : Double) = x >= low && x <= high 
+  def overlaps(rhs : Interval) = !(rhs.high < low || rhs.low > high)
+  def middle = (low + high)/2
+  def grow(d : Double) = Interval(low-d,high+d)
+}
+
+/** An Axis-Aligned Bounding Box.
+ *  
+ */
 case class AABBox(xInterval : Interval, yInterval : Interval){
   def isInside(p : Point) = xInterval.inside(p.x) && yInterval.inside(p.y)
   def union(rhs : AABBox) = new AABBox(xInterval union rhs.xInterval, yInterval union rhs.yInterval)
@@ -85,13 +93,16 @@ case class AABBox(xInterval : Interval, yInterval : Interval){
   def grow(x : Double) : AABBox= grow(x,x)
 }
 
-object Util{
-  def modulo(i:Int,m:Int) = {
+
+
+ object Util{
+  private[deform] def modulo(i:Int,m:Int) = {
     val j = i % m
     if(j < 0) m - j else j 
   }
-  val nothingInterval = Interval(Double.PositiveInfinity,Double.NegativeInfinity)
-  val emptyBBox = AABBox(nothingInterval,nothingInterval)
+  
+  val emptyInterval = Interval(Double.PositiveInfinity,Double.NegativeInfinity)
+  val emptyBBox = AABBox(emptyInterval,emptyInterval)
   def makeInterval(a : Double, b : Double) : Interval = 
     if(a <= b) Interval(a,b) else Interval(b,a)
   def makeInterval(a : Double, b : Double, c : Double) : Interval =
@@ -102,7 +113,7 @@ object Util{
   def makeBBox(a : Point, b :Point, c : Point) = AABBox(makeInterval(a.x,b.x,c.x),makeInterval(a.y,b.y,c.y))
   def makeBBox(a : Point, b :Point, c : Point, d : Point) = AABBox(makeInterval(a.x,b.x,c.x,d.x),makeInterval(a.y,b.y,c.y,d.y))
   
-  def newtonInvert(d : Double, func : Double => Double, funcDeriv : Double => Double, initGuess : Double, error : Double) = {
+  private[deform] def newtonInvert(d : Double, func : Double => Double, funcDeriv : Double => Double, initGuess : Double, error : Double) = {
       var guess = initGuess
       var off = func(guess) - d
       while(abs(off) > error) {
