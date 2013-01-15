@@ -8,6 +8,7 @@ import deform.library.Shapes._
 import deform.library.Textures._
 import deform.library.TexturedShapes._
 import deform.library.Colors._
+import deform.library.Colors.ColorNames
 import deform._
 import deform.library.Drawings._
 
