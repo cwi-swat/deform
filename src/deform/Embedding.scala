@@ -341,6 +341,10 @@ abstract class Transformation{
   private[deform] def toFTransformation (d : Double): FTransformation
   
   def |(op : Transformation) = ComposeTransformation(op,this)
+  def **(op : Point) : Point ={
+    val f: Transformation = DeformFunctions.normalize(1,1,this)
+    f.toFTransformation(1).forward(op)
+  }
   def **(op : Transformation) = ComposeTransformation(this,op)
   def **(op : Path) = TransformPath(this,op)
   def **(op : Shape) = TransformShape(this,op)
@@ -359,6 +363,7 @@ abstract class Transformation{
 
 private[deform] case class FTransformation(forward : Point => Point, backwards : Point => Point, transformBBox : Option[AABBox => AABBox], affectedArea : Option[Tuple2[AABBox,Transformation]]) extends Transformation{
   private[deform]override def toFTransformation(d:Double)= this
+
 }
 
 

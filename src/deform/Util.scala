@@ -100,9 +100,10 @@ case class AABBox(xInterval : Interval, yInterval : Interval){
     val j = i % m
     if(j < 0) m - j else j 
   }
-  
-  val emptyInterval = Interval(Double.PositiveInfinity,Double.NegativeInfinity)
-  val emptyBBox = AABBox(emptyInterval,emptyInterval)
+  def unitBBox = AABBox(unitInterval,unitInterval)
+  def emptyInterval = Interval(1,0)
+  def unitInterval = Interval(0,1)
+  def emptyBBox = AABBox(emptyInterval,emptyInterval)
   def makeInterval(a : Double, b : Double) : Interval = 
     if(a <= b) Interval(a,b) else Interval(b,a)
   def makeInterval(a : Double, b : Double, c : Double) : Interval =
