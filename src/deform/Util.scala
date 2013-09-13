@@ -62,6 +62,7 @@ case class Interval(low : Double, high : Double){
   def length = high - low
   def union(rhs : Interval) = new Interval(min(low,rhs.low),max(high,rhs.high))
   def intersect(rhs : Interval) = new Interval(max(low,rhs.low),min(high,rhs.high))
+  def boundTo(x : Double) = max(low,min(x,high))
   def empty() = low > high
   def inside(x : Double) = x >= low && x <= high 
   def overlaps(rhs : Interval) = !(rhs.high < low || rhs.low > high)
@@ -114,13 +115,19 @@ case class AABBox(xInterval : Interval, yInterval : Interval){
   def makeBBox(a : Point, b :Point, c : Point) = AABBox(makeInterval(a.x,b.x,c.x),makeInterval(a.y,b.y,c.y))
   def makeBBox(a : Point, b :Point, c : Point, d : Point) = AABBox(makeInterval(a.x,b.x,c.x,d.x),makeInterval(a.y,b.y,c.y,d.y))
   
-  private[deform] def newtonInvert(d : Double, func : Double => Double, funcDeriv : Double => Double, initGuess : Double, error : Double) = {
-      var guess = initGuess
+  private[deform] def newtonInvert(d : Double, func : Double => Double, funcDeriv : Double => Double, interval : Interval,initGuess : Double, error : Double) = {
+      var guess = interval.boundTo(initGuess)
       var off = func(guess) - d
+      var i = 0;
       while(abs(off) > error) {
+        
         val deriv = funcDeriv(guess);
-	    guess = guess - off / deriv;
+	    guess = interval.boundTo(guess - off / deriv);
 		off = func(guess) -d;
+		i+=1;
+		if (i > 100) {
+		  throw new Error("Not converging!" ++ error.toString() ++ " " ++ off.toString())
+		}
       }
       guess
     } 

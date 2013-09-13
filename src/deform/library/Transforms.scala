@@ -69,7 +69,7 @@ object Transforms {
 			val innerdivMag = innerRadius/zoom
 	        def toNorm (d : Double,scale : Double) = {
 	          val initGuess = ((d - innerdivMag) /borderTo) * border + innerRadius
-	          val res = Util.newtonInvert(d, fromNorm,fromNormDerivative, initGuess, DeformFunctions.numericError/(scale * 3))
+	          val res = Util.newtonInvert(d, fromNorm,fromNormDerivative, new Interval(innerdivMag,outerRadius),initGuess, DeformFunctions.numericError/(scale * 3))
 	          res
 	        }
 	        val innerZoom = innerRadius / zoom

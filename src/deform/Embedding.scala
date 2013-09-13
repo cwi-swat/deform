@@ -631,8 +631,13 @@ private[deform] object DeformFunctions{
         List(Line(sp,ep))
       } else {
         val middle = (start + end)/2.0
+        if (middle == start || middle == end) {
+          System.err.println("Numeric resolution to small!");
+          List(Line(sp,ep))
+        } else {
         val mp = f(middle)
         getLines(start,middle,sp,mp) ++ getLines(middle,end,mp,ep)
+        }
       }
     }
     getLines(0,1,f(0),f(1))
